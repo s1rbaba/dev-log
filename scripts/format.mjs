@@ -166,7 +166,7 @@ export function isEmpty(summary) {
     && summary.releases.length === 0;
 }
 
-export function renderEntry(summary, meta) {
+export function renderEntry(summary, meta, { windowHours = 24 } = {}) {
   const lines = [];
 
   if (summary.totalCommits > 0) {
@@ -217,7 +217,14 @@ export function renderEntry(summary, meta) {
   }
   if (lines.length === 0) lines.push('- _No activity._');
 
-  return { heading: meta.heading, body: lines.join('\n') };
+  let note = '';
+  if (windowHours !== 24) {
+    const days = windowHours / 24;
+    const label = Number.isInteger(days) ? `the last ${days} days` : `the last ${windowHours} hours`;
+    note = `_Covers ${label}._\n\n`;
+  }
+
+  return { heading: meta.heading, body: note + lines.join('\n') };
 }
 
 function splitLog(markdown) {

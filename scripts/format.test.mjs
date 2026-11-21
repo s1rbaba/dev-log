@@ -124,6 +124,15 @@ test('renders a readable entry', () => {
   assert.match(entry.body, /Opened issue \[#3\]/);
 });
 
+test('labels a non-default window', () => {
+  const summary = summarize([], { since: SINCE, until: UNTIL });
+  const meta = monthMeta(new Date('2026-11-21T12:00:00Z'), 'UTC');
+  const entry = renderEntry(summary, meta, { windowHours: 168 });
+
+  assert.ok(entry.body.startsWith('_Covers the last 7 days._'));
+  assert.match(entry.body, /- _No activity\._/);
+});
+
 test('builds month metadata in the requested timezone', () => {
   const utc = monthMeta(new Date('2026-11-21T12:00:00Z'), 'UTC');
   assert.deepEqual(utc, {

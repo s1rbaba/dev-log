@@ -70,7 +70,7 @@ async function main() {
     until: now.getTime(),
     exclude,
   });
-  const entry = renderEntry(summary, meta);
+  const entry = renderEntry(summary, meta, { windowHours: hours });
 
   if (isEmpty(summary)) {
     const who = login ? ` for ${login}` : '';
