@@ -1,0 +1,57 @@
+name: Daily dev log
+
+on:
+  schedule:
+    # 06:17 UTC every day. GitHub can delay scheduled runs by a few minutes.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: "Hours to look back"
+        required: false
+        default: "24"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-log
+  cancel-in-progress: false
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Write today's entry
+        env:
+          GH_TOKEN: ${{ secrets.ACTIVITY_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_LOGIN: ${{ vars.LOGIN || github.repository_owner }}
+          LOG_HOURS: ${{ inputs.hours || '24' }}
+          LOG_TZ: ${{ vars.TZ || 'UTC' }}
+          # Never count the log's own commits, otherwise every day feeds the next.
+          LOG_EXCLUDE: ${{ github.repository }}
+        run: node scripts/build-log.mjs
+
+      - name: Commit and push
+        env:
+          LOGIN: ${{ vars.LOGIN || github.repository_owner }}
+          EMAIL: ${{ vars.EMAIL || format('{0}@users.noreply.github.com', vars.LOGIN || github.repository_owner) }}
+        run: |
+          if [ -z "$(git status --porcelain log)" ]; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "$LOGIN"
+          git config user.email "$EMAIL"
+          git add log
+          git commit -m "log: $(date -u +%Y-%m-%d)"
+          git push origin HEAD

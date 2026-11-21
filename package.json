@@ -1,0 +1,14 @@
+{
+  "name": "daily-dev-log",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A daily log generated from real GitHub activity.",
+  "type": "module",
+  "scripts": {
+    "log": "node scripts/build-log.mjs",
+    "test": "node --test scripts/"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
